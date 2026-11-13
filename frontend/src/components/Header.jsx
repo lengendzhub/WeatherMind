@@ -49,8 +49,8 @@ export default function Header({
             <CloudSun size={20} strokeWidth={1.5} color="var(--blue-2)" />
           </div>
           <div className="brand-copy">
-            <h1 className="brand-heading">Travel Weather</h1>
-            <span className="brand-tagline">Planner</span>
+            <h1 className="brand-heading">WeatherMind</h1>
+            <span className="brand-tagline">Travel Weather Planner</span>
           </div>
         </div>
 
