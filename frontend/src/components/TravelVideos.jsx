@@ -78,7 +78,7 @@ export default function TravelVideos({ locationName }) {
           </p>
           <div className="empty-hint-row">
             <span className="api-key-chip">YOUTUBE_API_KEY</span>
-            <span className="empty-subtext">Add to backend/.env to stream videos</span>
+            <span className="empty-subtext">{data?.message || 'Add to backend/.env to stream videos'}</span>
           </div>
         </div>
       )}

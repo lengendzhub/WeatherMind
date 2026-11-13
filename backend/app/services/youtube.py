@@ -28,9 +28,12 @@ async def search_travel_videos(location_name: str, max_results: int = 4) -> dict
         async with httpx.AsyncClient(timeout=10.0) as client:
             resp = await client.get(YOUTUBE_SEARCH_URL, params=params)
             if resp.status_code != 200:
+                msg = f"YouTube API returned status {resp.status_code}."
+                if resp.status_code == 403:
+                    msg = "Key found, but 'YouTube Data API v3' needs to be enabled in Google Cloud Console."
                 return {
                     "available": False,
-                    "message": f"YouTube API returned status {resp.status_code}.",
+                    "message": msg,
                     "videos": [],
                 }
             data = resp.json()
