@@ -1,4 +1,6 @@
-const API_BASE = '/api';
+// If VITE_API_BASE_URL is set (e.g. on Vercel or Render production), use it; otherwise fallback to '/api' local proxy
+const RAW_BASE = import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '') : '';
+const API_BASE = `${RAW_BASE}/api`;
 
 export async function searchLocations(query) {
   const resp = await fetch(`${API_BASE}/locations/search?q=${encodeURIComponent(query)}`);

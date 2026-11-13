@@ -12,8 +12,9 @@ def test_map_endpoint_invalid_lat(client):
     assert response.status_code == 422
 
 
-def test_videos_endpoint_fallback_without_key(client):
+def test_videos_endpoint_fallback_without_key(client, monkeypatch):
     """When YOUTUBE_API_KEY is unset or invalid, endpoint returns available: False without crashing."""
+    monkeypatch.setattr("app.services.youtube.YOUTUBE_API_KEY", "")
     response = client.get("/api/media/videos?q=Tokyo")
     assert response.status_code == 200
     data = response.json()
