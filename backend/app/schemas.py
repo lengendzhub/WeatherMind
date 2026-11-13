@@ -1,5 +1,5 @@
-from datetime import date
-from pydantic import BaseModel, Field
+from datetime import date, datetime
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class Location(BaseModel):
@@ -53,3 +53,61 @@ class WeatherOverview(BaseModel):
     location: Location | None = None
     current: CurrentWeather
     forecast: list[DailyForecastItem]
+
+
+class WeatherRecordCreate(BaseModel):
+    location_name: str = Field(..., min_length=2, max_length=200)
+    country: str | None = None
+    latitude: float | None = Field(None, ge=-90.0, le=90.0)
+    longitude: float | None = Field(None, ge=-180.0, le=180.0)
+    start_date: date
+    end_date: date
+    notes: str | None = Field(None, max_length=500)
+
+
+class WeatherRecordUpdate(BaseModel):
+    start_date: date | None = None
+    end_date: date | None = None
+    notes: str | None = Field(None, max_length=500)
+
+
+class WeatherRecordResponse(BaseModel):
+    id: int
+    location_name: str
+    country: str | None = None
+    latitude: float
+    longitude: float
+    start_date: date
+    end_date: date
+    daily_data: list[dict]
+    notes: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class VideoItem(BaseModel):
+    id: str
+    title: str
+    description: str
+    thumbnail: str
+    channel_title: str
+    url: str
+    embed_url: str
+
+
+class VideoResponse(BaseModel):
+    available: bool
+    message: str
+    videos: list[VideoItem]
+
+
+class MapInfo(BaseModel):
+    latitude: float
+    longitude: float
+    zoom: int
+    embed_url: str
+    osm_url: str
+
+

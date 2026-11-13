@@ -5,3 +5,6 @@ load_dotenv()
 
 FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./weather.db")
+YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY", "")
+
+

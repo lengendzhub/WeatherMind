@@ -50,3 +50,4 @@ async def weather_overview(
         raise HTTPException(status_code=422, detail=str(exc))
     except WeatherServiceError as exc:
         raise HTTPException(status_code=502, detail=str(exc))
+

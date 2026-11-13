@@ -1,6 +1,8 @@
+from datetime import date, datetime, timedelta
 import httpx
 
 FORECAST_API_URL = "https://api.open-meteo.com/v1/forecast"
+ARCHIVE_API_URL = "https://archive-api.open-meteo.com/v1/archive"
 
 # WMO Weather interpretation codes (WW)
 # Code -> (description, day_icon, night_icon)
@@ -166,3 +168,55 @@ async def get_weather_overview(latitude: float, longitude: float, days: int = 5)
         "current": parse_current_weather(raw),
         "forecast": parse_daily_forecast(raw),
     }
+
+
+async def fetch_range_weather(latitude: float, longitude: float, start_date: date, end_date: date) -> list[dict]:
+    validate_coords(latitude, longitude)
+    today = datetime.now().date()
+    # If the end_date is more than 5 days in the past, or start_date is older than 60 days, archive API is most accurate
+    # Otherwise, forecast API supports past up to 92 days and future up to 16 days.
+    use_archive = end_date < (today - timedelta(days=5))
+
+    url = ARCHIVE_API_URL if use_archive else FORECAST_API_URL
+    params = {
+        "latitude": latitude,
+        "longitude": longitude,
+        "start_date": start_date.isoformat(),
+        "end_date": end_date.isoformat(),
+        "daily": "temperature_2m_max,temperature_2m_min,precipitation_sum,weather_code",
+        "timezone": "auto",
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get(url, params=params)
+            # If forecast failed on past date, try archive
+            if resp.status_code >= 400 and not use_archive:
+                resp = await client.get(ARCHIVE_API_URL, params=params)
+            resp.raise_for_status()
+            data = resp.json()
+    except httpx.HTTPError as exc:
+        raise WeatherServiceError(f"Failed to fetch historical/forecast range weather: {str(exc)}") from exc
+
+    daily = data.get("daily", {})
+    times = daily.get("time", [])
+    max_temps = daily.get("temperature_2m_max", [])
+    min_temps = daily.get("temperature_2m_min", [])
+    precip_sums = daily.get("precipitation_sum", [])
+    codes = daily.get("weather_code", [])
+
+    results = []
+    for i in range(len(times)):
+        code = int(codes[i]) if i < len(codes) and codes[i] is not None else 0
+        cond, _ = interpret_wmo_code(code, is_day=1)
+        results.append({
+            "date": times[i],
+            "temp_max": max_temps[i] if i < len(max_temps) and max_temps[i] is not None else 0.0,
+            "temp_min": min_temps[i] if i < len(min_temps) and min_temps[i] is not None else 0.0,
+            "precipitation_sum": precip_sums[i] if i < len(precip_sums) and precip_sums[i] is not None else 0.0,
+            "weather_code": code,
+            "condition": cond,
+        })
+    return results
+
+

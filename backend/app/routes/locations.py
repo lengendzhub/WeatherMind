@@ -13,3 +13,4 @@ async def search(q: str = Query(..., min_length=2, max_length=100, description="
         raise HTTPException(status_code=404, detail=str(exc))
     except UpstreamError as exc:
         raise HTTPException(status_code=502, detail=str(exc))
+

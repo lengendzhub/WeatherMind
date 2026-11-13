@@ -62,3 +62,4 @@ async def search_locations(query: str, count: int = 5) -> list[dict]:
         }
         for item in results
     ]
+
