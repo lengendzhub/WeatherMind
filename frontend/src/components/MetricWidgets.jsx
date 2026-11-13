@@ -237,3 +237,4 @@ export function SunArcWidget({ sunrise, sunset }) {
     </div>
   );
 }
+

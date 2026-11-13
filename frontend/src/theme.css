@@ -1,6 +1,6 @@
 /* ==========================================================================
-   Apple-Style Design System & Color Palette
-   Strictly adhering to requested CSS variables and Apple UI tokens
+   Apple-Style Design System & Color Tokens
+   Strict WCAG AA Accessibility & Fluid Typography
    ========================================================================== */
 
 :root {
@@ -26,30 +26,40 @@
   --snow: #F7F7F7;
 
   /* Typography Stack */
-  --font-system: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Inter, system-ui, sans-serif;
+  --font-system: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", system-ui, sans-serif;
+  --font-mono: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, Monaco, Consolas, monospace;
 
-  /* Widget Geometry & Apple Curves */
+  /* Fluid Typography Scale (using clamp and rem) */
+  --type-hero-temp: clamp(5rem, 14vw, 8.5rem);
+  --type-large-title: clamp(1.75rem, 4vw, 2.5rem);
+  --type-widget-title: clamp(1.125rem, 2vw, 1.25rem);
+  --type-body: 1rem;
+  --type-metric-value: clamp(1.5rem, 3vw, 2rem);
+  --type-caption: 0.75rem;
+
+  /* Geometry & Curves */
   --radius-widget: 26px;
   --radius-pill: 9999px;
   --radius-sm: 14px;
   --radius-md: 18px;
-  --bento-gap: 18px;
+  --bento-gap: 1.125rem;
   --content-max-width: 1200px;
+  --content-max-width-wide: 1440px;
 
   /* Default (Dark Mode) Tokens */
   --bg-app: var(--ink);
   --bg-gradient: radial-gradient(circle at 50% 0%, #2c2c2e 0%, #1c1c1e 55%, #151516 100%);
   --text-primary: var(--snow);
-  --text-secondary: var(--gray-1);
+  --text-secondary: rgba(247, 247, 247, 0.65); /* Snow at 65% for WCAG AA */
+  --text-label: var(--gray-1);
   --text-tertiary: var(--gray-2);
   --surface-glass: rgba(255, 255, 255, 0.08);
   --surface-glass-hover: rgba(255, 255, 255, 0.12);
-  --surface-glass-active: rgba(255, 255, 255, 0.16);
   --surface-opaque: #2c2c2e;
   --border-glass: rgba(255, 255, 255, 0.12);
   --border-subtle: rgba(255, 255, 255, 0.06);
   --shadow-glass: 0 12px 36px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.2);
-  --shadow-float: 0 20px 48px rgba(0, 0, 0, 0.45);
+  --shadow-float: 0 24px 48px rgba(0, 0, 0, 0.5);
   --blur-glass: blur(28px) saturate(190%);
   --chip-bg: rgba(255, 255, 255, 0.08);
   --chip-text: var(--snow);
@@ -62,16 +72,16 @@
 /* Light Mode Overrides */
 [data-theme="light"] {
   --bg-app: var(--snow);
-  --bg-gradient: radial-gradient(circle at 50% 0%, rgba(214, 206, 195, 0.4) 0%, #f7f7f7 65%, #ecebe8 100%);
+  --bg-gradient: radial-gradient(circle at 50% 0%, rgba(214, 206, 195, 0.45) 0%, #f7f7f7 65%, #ecebe8 100%);
   --text-primary: var(--ink);
-  --text-secondary: var(--gray-1);
+  --text-secondary: rgba(31, 31, 33, 0.65); /* Ink at 65% for WCAG AA */
+  --text-label: #6e6e73; /* Refined for light mode AA contrast */
   --text-tertiary: var(--gray-2);
-  --surface-glass: rgba(255, 255, 255, 0.72);
-  --surface-glass-hover: rgba(255, 255, 255, 0.88);
-  --surface-glass-active: rgba(255, 255, 255, 0.95);
+  --surface-glass: rgba(255, 255, 255, 0.75);
+  --surface-glass-hover: rgba(255, 255, 255, 0.9);
   --surface-opaque: #ffffff;
   --border-glass: rgba(255, 255, 255, 0.85);
-  --border-subtle: rgba(199, 199, 204, 0.4);
+  --border-subtle: rgba(199, 199, 204, 0.45);
   --shadow-glass: 0 10px 30px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02);
   --shadow-float: 0 24px 50px rgba(0, 0, 0, 0.1);
   --blur-glass: blur(30px) saturate(180%);
@@ -79,24 +89,23 @@
   --chip-text: var(--ink);
   --chip-active-bg: var(--pink-tint);
   --chip-active-text: var(--ink);
-  --search-bg: rgba(255, 255, 255, 0.75);
+  --search-bg: rgba(255, 255, 255, 0.85);
   --search-border: rgba(199, 199, 204, 0.6);
 }
 
-/* System Preference Automatic Adaptation (when no manual override) */
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
     --bg-app: var(--snow);
-    --bg-gradient: radial-gradient(circle at 50% 0%, rgba(214, 206, 195, 0.4) 0%, #f7f7f7 65%, #ecebe8 100%);
+    --bg-gradient: radial-gradient(circle at 50% 0%, rgba(214, 206, 195, 0.45) 0%, #f7f7f7 65%, #ecebe8 100%);
     --text-primary: var(--ink);
-    --text-secondary: var(--gray-1);
+    --text-secondary: rgba(31, 31, 33, 0.65);
+    --text-label: #6e6e73;
     --text-tertiary: var(--gray-2);
-    --surface-glass: rgba(255, 255, 255, 0.72);
-    --surface-glass-hover: rgba(255, 255, 255, 0.88);
-    --surface-glass-active: rgba(255, 255, 255, 0.95);
+    --surface-glass: rgba(255, 255, 255, 0.75);
+    --surface-glass-hover: rgba(255, 255, 255, 0.9);
     --surface-opaque: #ffffff;
     --border-glass: rgba(255, 255, 255, 0.85);
-    --border-subtle: rgba(199, 199, 204, 0.4);
+    --border-subtle: rgba(199, 199, 204, 0.45);
     --shadow-glass: 0 10px 30px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02);
     --shadow-float: 0 24px 50px rgba(0, 0, 0, 0.1);
     --blur-glass: blur(30px) saturate(180%);
@@ -104,7 +113,7 @@
     --chip-text: var(--ink);
     --chip-active-bg: var(--pink-tint);
     --chip-active-text: var(--ink);
-    --search-bg: rgba(255, 255, 255, 0.75);
+    --search-bg: rgba(255, 255, 255, 0.85);
     --search-border: rgba(199, 199, 204, 0.6);
   }
 }

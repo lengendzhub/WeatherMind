@@ -14,6 +14,7 @@ import LocationMap from './components/LocationMap';
 import TravelVideos from './components/TravelVideos';
 import TripPlannerSection from './components/TripPlannerSection';
 import PmaInfoSection from './components/PmaInfoSection';
+import MobileActionBar from './components/MobileActionBar';
 import { getWeatherOverview } from './services/api';
 import './App.css';
 
@@ -27,15 +28,25 @@ const DEFAULT_LOCATION = {
 };
 
 export default function App() {
-  // Theme state: defaults to dark or system preference, persisted
+  // Theme state: defaults to dark or system preference, persisted safely
   const [theme, setTheme] = useState(() => {
-    const saved = localStorage.getItem('pma_theme');
-    if (saved) return saved;
-    return window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    try {
+      const saved = localStorage.getItem('pma_theme');
+      if (saved) return saved;
+      return window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    } catch {
+      return 'dark';
+    }
   });
 
-  // Temperature unit state (°C or °F)
-  const [unit, setUnit] = useState(() => localStorage.getItem('pma_temp_unit') || 'C');
+  // Temperature unit state (°C or °F), persisted safely
+  const [unit, setUnit] = useState(() => {
+    try {
+      return localStorage.getItem('pma_temp_unit') || 'C';
+    } catch {
+      return 'C';
+    }
+  });
 
   // Active location and weather
   const [activeLocation, setActiveLocation] = useState(DEFAULT_LOCATION);
@@ -43,16 +54,25 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [geoLoading, setGeoLoading] = useState(false);
 
   // Sync theme to root attribute and localStorage
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('pma_theme', theme);
+    try {
+      localStorage.setItem('pma_theme', theme);
+    } catch {
+      /* ignore */
+    }
   }, [theme]);
 
   // Sync unit to localStorage
   useEffect(() => {
-    localStorage.setItem('pma_temp_unit', unit);
+    try {
+      localStorage.setItem('pma_temp_unit', unit);
+    } catch {
+      /* ignore */
+    }
   }, [unit]);
 
   // Online / Offline listeners
@@ -95,6 +115,61 @@ export default function App() {
   const handleScrollToPlanner = () => {
     const el = document.querySelector('.planner-widget');
     if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleFocusSearch = () => {
+    const input = document.querySelector('.spotlight-input');
+    if (input) {
+      input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      input.focus();
+    }
+  };
+
+  const handleUseMyLocation = () => {
+    if (!navigator.geolocation) {
+      setError('Browser geolocation is not supported on this device.');
+      return;
+    }
+
+    setGeoLoading(true);
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setGeoLoading(false);
+        const { latitude, longitude } = pos.coords;
+        const myLocation = {
+          name: 'My Current Location',
+          country: null,
+          region: null,
+          latitude,
+          longitude,
+          timezone: null,
+        };
+        setActiveLocation(myLocation);
+      },
+      (err) => {
+        setGeoLoading(false);
+        let msg = 'Failed to retrieve your location.';
+        if (err.code === err.PERMISSION_DENIED) {
+          msg = 'Geolocation access was denied. Please allow location access or search manually.';
+        } else if (err.code === err.POSITION_UNAVAILABLE) {
+          msg = 'Location information is unavailable.';
+        } else if (err.code === err.TIMEOUT) {
+          msg = 'Geolocation request timed out. Please try again.';
+        }
+        setError(msg);
+      },
+      { timeout: 10000, enableHighAccuracy: true }
+    );
+  };
+
+  const handleOpenNewTrip = () => {
+    const newTripBtn = document.querySelector('.btn-new-trip');
+    if (newTripBtn) {
+      newTripBtn.click();
+    } else {
+      handleScrollToPlanner();
+    }
   };
 
   const current = weatherData?.current;
@@ -213,6 +288,14 @@ export default function App() {
           </div>
         )}
       </main>
+
+      {/* Floating Bottom Action Bar for Mobile */}
+      <MobileActionBar
+        onFocusSearch={handleFocusSearch}
+        onUseMyLocation={handleUseMyLocation}
+        onOpenNewTrip={handleOpenNewTrip}
+        geoLoading={geoLoading}
+      />
     </div>
   );
 }
