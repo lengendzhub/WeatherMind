@@ -174,7 +174,6 @@ WeatherMind/
 │   ├── package.json
 │   └── vite.config.js
 ├── .gitignore
-├── DEMO_SCRIPT.md                 # Step-by-step 3-5 minute walkthrough script
 ├── TESTING.md                     # QA test matrices and edge-case verifications
 └── README.md                      # Comprehensive project documentation
 ```
