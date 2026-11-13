@@ -1,14 +1,6 @@
 import React, { useState } from 'react';
-import { Search, Navigation, Loader2, MapPin } from 'lucide-react';
+import { Search, Navigation, Loader2, MapPin, X } from 'lucide-react';
 import { searchLocations } from '../services/api';
-
-const QUICK_LOCATIONS = [
-  { name: 'London', country: 'United Kingdom', lat: 51.5085, lon: -0.1257 },
-  { name: 'New York', country: 'United States', lat: 40.7128, lon: -74.006 },
-  { name: 'Tokyo', country: 'Japan', lat: 35.6895, lon: 139.6917 },
-  { name: 'Paris', country: 'France', lat: 48.8534, lon: 2.3488 },
-  { name: 'Sydney', country: 'Australia', lat: -33.8678, lon: 151.2073 },
-];
 
 export default function SearchBar({ onSelectLocation, onGeoError, loading }) {
   const [query, setQuery] = useState('');
@@ -90,96 +82,90 @@ export default function SearchBar({ onSelectLocation, onGeoError, loading }) {
   };
 
   return (
-    <div className="search-section">
-      <form onSubmit={handleSearchSubmit} className="search-form">
-        <div className="input-group">
-          <Search className="search-icon" size={20} />
+    <div className="spotlight-search-container">
+      <form onSubmit={handleSearchSubmit} className="spotlight-form" role="search">
+        <div className="spotlight-pill">
+          {searching ? (
+            <Loader2 size={16} strokeWidth={1.5} className="spin text-secondary" />
+          ) : (
+            <Search size={16} strokeWidth={1.5} className="search-lead-icon" />
+          )}
+
           <input
             type="text"
-            className="search-input"
+            className="spotlight-input"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search city, postal code (10001), coordinates (40.7,-74.0), or landmark..."
+            placeholder="Search city, postal code, landmark, or lat,lon..."
+            aria-label="Search destination"
             disabled={loading || searching || geoLoading}
           />
+
           {query && (
             <button
               type="button"
-              className="clear-btn"
+              className="spotlight-icon-btn clear-btn"
               onClick={() => {
                 setQuery('');
                 setMatches([]);
                 setShowDropdown(false);
               }}
+              aria-label="Clear query"
             >
-              ×
+              <X size={14} strokeWidth={1.5} />
             </button>
           )}
+
+          <div className="spotlight-divider" />
+
+          <button
+            type="button"
+            className={`spotlight-icon-btn geo-btn ${geoLoading ? 'loading' : ''}`}
+            onClick={handleUseMyLocation}
+            disabled={geoLoading || loading}
+            aria-label="Use My Location via GPS"
+            title="Use My Location"
+          >
+            {geoLoading ? (
+              <Loader2 size={16} strokeWidth={1.5} className="spin" color="var(--blue)" />
+            ) : (
+              <Navigation size={15} strokeWidth={1.5} color="var(--blue)" />
+            )}
+          </button>
         </div>
-
-        <button
-          type="submit"
-          className="btn btn-primary"
-          disabled={query.trim().length < 2 || searching || loading}
-        >
-          {searching ? <Loader2 size={18} className="spin" /> : 'Search'}
-        </button>
-
-        <button
-          type="button"
-          className="btn btn-secondary geo-btn"
-          onClick={handleUseMyLocation}
-          disabled={geoLoading || loading}
-          title="Use GPS Geolocation"
-        >
-          {geoLoading ? (
-            <Loader2 size={18} className="spin" />
-          ) : (
-            <>
-              <Navigation size={18} />
-              <span className="btn-label">Use My Location</span>
-            </>
-          )}
-        </button>
       </form>
 
-      {/* Multiple Matches Dropdown */}
+      {/* Spotlight Dropdown Matches */}
       {showDropdown && matches.length > 0 && (
-        <div className="matches-dropdown">
-          <p className="matches-title">Select a matching location ({matches.length} found):</p>
-          <ul className="matches-list">
+        <div className="spotlight-dropdown" role="listbox">
+          <div className="dropdown-header">
+            <span className="widget-label">Matching Locations ({matches.length})</span>
+          </div>
+          <div className="dropdown-scroll">
             {matches.map((item, idx) => (
-              <li key={idx} onClick={() => handleSelectMatch(item)} className="match-item">
-                <MapPin size={16} className="match-icon" />
-                <span className="match-name">{item.name}</span>
-                {item.region && <span className="match-region">({item.region})</span>}
-                {item.country && <span className="match-country">{item.country}</span>}
-                <span className="match-coords">
+              <button
+                key={idx}
+                type="button"
+                className="dropdown-item"
+                onClick={() => handleSelectMatch(item)}
+              >
+                <div className="dropdown-item-leading">
+                  <MapPin size={16} strokeWidth={1.5} color="var(--blue)" />
+                </div>
+                <div className="dropdown-item-content">
+                  <div className="dropdown-item-title">{item.name}</div>
+                  <div className="dropdown-item-sub">
+                    {[item.region, item.country].filter(Boolean).join(', ')}
+                  </div>
+                </div>
+                <div className="dropdown-item-trailing tabular-nums">
                   {item.latitude.toFixed(2)}°, {item.longitude.toFixed(2)}°
-                </span>
-              </li>
+                </div>
+              </button>
             ))}
-          </ul>
+          </div>
         </div>
       )}
-
-      {/* Quick location chips */}
-      <div className="quick-chips">
-        <span className="chips-label">Popular Destinations:</span>
-        {QUICK_LOCATIONS.map((loc) => (
-          <button
-            key={loc.name}
-            type="button"
-            className="chip-btn"
-            onClick={() => {
-              setQuery(loc.name);
-              onSelectLocation(loc);
-            }}
-          >
-            {loc.name}
-          </button>
-        ))}
-      </div>
     </div>
   );
 }

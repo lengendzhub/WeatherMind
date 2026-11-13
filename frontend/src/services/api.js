@@ -103,3 +103,4 @@ export async function getTravelVideos(query) {
   }
   return resp.json();
 }
+

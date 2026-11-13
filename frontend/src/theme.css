@@ -1,0 +1,110 @@
+/* ==========================================================================
+   Apple-Style Design System & Color Palette
+   Strictly adhering to requested CSS variables and Apple UI tokens
+   ========================================================================== */
+
+:root {
+  /* Brand / System Accents */
+  --blue: #007AFF;
+  --blue-2: #34AADC;
+  --sky: #5AC8FA;
+  --indigo: #5856D6;
+  --green: #4CD964;
+  --yellow: #FFCC00;
+  --orange: #FF9500;
+  --red: #FF3B30;
+  --red-alert: #FF3A2D;
+  --pink: #FF2D55;
+  --pink-tint: #FFD3E0;
+
+  /* Neutrals */
+  --ink: #1F1F21;
+  --gray-1: #8E8E93;
+  --gray-2: #BDBEC2;
+  --gray-3: #C7C7CC;
+  --sand: #D6CEC3;
+  --snow: #F7F7F7;
+
+  /* Typography Stack */
+  --font-system: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Inter, system-ui, sans-serif;
+
+  /* Widget Geometry & Apple Curves */
+  --radius-widget: 26px;
+  --radius-pill: 9999px;
+  --radius-sm: 14px;
+  --radius-md: 18px;
+  --bento-gap: 18px;
+  --content-max-width: 1200px;
+
+  /* Default (Dark Mode) Tokens */
+  --bg-app: var(--ink);
+  --bg-gradient: radial-gradient(circle at 50% 0%, #2c2c2e 0%, #1c1c1e 55%, #151516 100%);
+  --text-primary: var(--snow);
+  --text-secondary: var(--gray-1);
+  --text-tertiary: var(--gray-2);
+  --surface-glass: rgba(255, 255, 255, 0.08);
+  --surface-glass-hover: rgba(255, 255, 255, 0.12);
+  --surface-glass-active: rgba(255, 255, 255, 0.16);
+  --surface-opaque: #2c2c2e;
+  --border-glass: rgba(255, 255, 255, 0.12);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --shadow-glass: 0 12px 36px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-float: 0 20px 48px rgba(0, 0, 0, 0.45);
+  --blur-glass: blur(28px) saturate(190%);
+  --chip-bg: rgba(255, 255, 255, 0.08);
+  --chip-text: var(--snow);
+  --chip-active-bg: var(--blue);
+  --chip-active-text: #ffffff;
+  --search-bg: rgba(255, 255, 255, 0.09);
+  --search-border: rgba(255, 255, 255, 0.14);
+}
+
+/* Light Mode Overrides */
+[data-theme="light"] {
+  --bg-app: var(--snow);
+  --bg-gradient: radial-gradient(circle at 50% 0%, rgba(214, 206, 195, 0.4) 0%, #f7f7f7 65%, #ecebe8 100%);
+  --text-primary: var(--ink);
+  --text-secondary: var(--gray-1);
+  --text-tertiary: var(--gray-2);
+  --surface-glass: rgba(255, 255, 255, 0.72);
+  --surface-glass-hover: rgba(255, 255, 255, 0.88);
+  --surface-glass-active: rgba(255, 255, 255, 0.95);
+  --surface-opaque: #ffffff;
+  --border-glass: rgba(255, 255, 255, 0.85);
+  --border-subtle: rgba(199, 199, 204, 0.4);
+  --shadow-glass: 0 10px 30px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02);
+  --shadow-float: 0 24px 50px rgba(0, 0, 0, 0.1);
+  --blur-glass: blur(30px) saturate(180%);
+  --chip-bg: rgba(0, 0, 0, 0.04);
+  --chip-text: var(--ink);
+  --chip-active-bg: var(--pink-tint);
+  --chip-active-text: var(--ink);
+  --search-bg: rgba(255, 255, 255, 0.75);
+  --search-border: rgba(199, 199, 204, 0.6);
+}
+
+/* System Preference Automatic Adaptation (when no manual override) */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg-app: var(--snow);
+    --bg-gradient: radial-gradient(circle at 50% 0%, rgba(214, 206, 195, 0.4) 0%, #f7f7f7 65%, #ecebe8 100%);
+    --text-primary: var(--ink);
+    --text-secondary: var(--gray-1);
+    --text-tertiary: var(--gray-2);
+    --surface-glass: rgba(255, 255, 255, 0.72);
+    --surface-glass-hover: rgba(255, 255, 255, 0.88);
+    --surface-glass-active: rgba(255, 255, 255, 0.95);
+    --surface-opaque: #ffffff;
+    --border-glass: rgba(255, 255, 255, 0.85);
+    --border-subtle: rgba(199, 199, 204, 0.4);
+    --shadow-glass: 0 10px 30px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02);
+    --shadow-float: 0 24px 50px rgba(0, 0, 0, 0.1);
+    --blur-glass: blur(30px) saturate(180%);
+    --chip-bg: rgba(0, 0, 0, 0.04);
+    --chip-text: var(--ink);
+    --chip-active-bg: var(--pink-tint);
+    --chip-active-text: var(--ink);
+    --search-bg: rgba(255, 255, 255, 0.75);
+    --search-border: rgba(199, 199, 204, 0.6);
+  }
+}

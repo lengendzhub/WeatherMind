@@ -185,3 +185,4 @@ The application provides native, standard-compliant export generation:
 - **Candidate Name**: `[YOUR NAME]`
 - **Assessment**: AI Engineer Intern - PM Accelerator
 - **Description**: *Refer to [PMA Info Section](file:///D:/PMA/pma-weather-app/frontend/src/components/PmaInfoSection.jsx) for the official PM Accelerator placeholder.*
+

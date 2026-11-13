@@ -29,48 +29,55 @@ export default function LocationMap({ latitude, longitude, locationName }) {
 
   if (latitude === undefined || longitude === undefined) return null;
 
+  const latLabel = `${Math.abs(latitude).toFixed(4)}° ${latitude >= 0 ? 'N' : 'S'}`;
+  const lonLabel = `${Math.abs(longitude).toFixed(4)}° ${longitude >= 0 ? 'E' : 'W'}`;
+
   return (
-    <div className="card map-card">
-      <div className="map-header">
-        <div className="section-title-row">
-          <Map size={20} color="#38bdf8" />
-          <h3 className="section-title">Destination Map</h3>
+    <div className="widget map-widget widget-hoverable" role="region" aria-label="Destination Map">
+      <div className="widget-header map-top-bar">
+        <div className="header-label-group">
+          <Map size={14} strokeWidth={1.5} color="var(--pink)" />
+          <span className="widget-label">Destination Map</span>
         </div>
+
         {mapData?.osm_url && (
           <a
             href={mapData.osm_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="osm-link"
+            className="glass-capsule map-external-link"
+            title="Open in OpenStreetMap"
           >
             <span>View Full Map</span>
-            <ExternalLink size={14} />
+            <ExternalLink size={12} strokeWidth={1.5} />
           </a>
         )}
       </div>
 
-      <div className="map-container">
+      <div className="map-viewport">
         {mapData?.embed_url ? (
           <iframe
-            title={`Map of ${locationName || 'Location'}`}
+            title={`Map of ${locationName || 'Destination'}`}
             src={mapData.embed_url}
-            className="map-iframe"
+            className="map-iframe-element"
             loading="lazy"
           />
         ) : (
-          <div className="map-placeholder">
-            <span>Loading interactive map...</span>
+          <div className="map-shimmer-placeholder skeleton">
+            <span className="widget-label">Loading Map...</span>
           </div>
         )}
-      </div>
 
-      <div className="map-footer">
-        <span className="map-coords-badge">
-          GPS: {latitude.toFixed(4)}°, {longitude.toFixed(4)}°
-        </span>
-        <span className="map-attribution">
-          © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors
-        </span>
+        {/* Floating Glass GPS Coordinates Chip */}
+        <div className="map-coordinates-chip">
+          <span className="coord-dot" />
+          <span className="tabular-nums coord-text">{latLabel}, {lonLabel}</span>
+        </div>
+
+        {/* Tidy Clean OSM Attribution */}
+        <div className="map-attribution-badge">
+          © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a>
+        </div>
       </div>
     </div>
   );

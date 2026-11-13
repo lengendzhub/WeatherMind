@@ -66,3 +66,4 @@ async def search_travel_videos(location_name: str, max_results: int = 4) -> dict
             "message": f"Could not fetch videos: {str(exc)}",
             "videos": [],
         }
+

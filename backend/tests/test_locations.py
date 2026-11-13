@@ -49,3 +49,4 @@ def test_search_upstream_error_mocked(mock_search, client):
     response = client.get("/api/locations/search?q=London")
     assert response.status_code == 502
     assert "unavailable" in response.json()["detail"]
+

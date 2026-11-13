@@ -19,3 +19,4 @@ def test_videos_endpoint_fallback_without_key(client):
     data = response.json()
     assert data["available"] is False
     assert isinstance(data["videos"], list)
+

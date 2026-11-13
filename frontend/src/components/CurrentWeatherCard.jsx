@@ -1,140 +1,90 @@
 import React from 'react';
-import {
-  Thermometer,
-  Droplets,
-  Wind,
-  Sun,
-  Sunrise,
-  Sunset,
-  Clock,
-  CloudRain,
-  MapPin,
-  Calendar,
-} from 'lucide-react';
+import { Calendar, Clock, MapPin, ArrowUp, ArrowDown } from 'lucide-react';
 import { getWeatherIconComponent } from '../utils/weatherIcons';
-import { formatTemp, formatWind, formatTime, getUvCategory } from '../utils/formatters';
+import { formatTemp, formatTime, getHeroGradientClass } from '../utils/formatters';
 
-export default function CurrentWeatherCard({ weather, location, unit, onOpenPlanner }) {
+export default function CurrentWeatherCard({
+  weather,
+  location,
+  unit,
+  todayForecast,
+  onOpenPlanner,
+}) {
   if (!weather) return null;
 
-  const uvInfo = getUvCategory(weather.uv_index);
+  const gradientClass = getHeroGradientClass(weather.weather_code, weather.is_day);
+
+  // Derive high/low from today's forecast or current
+  const highTemp = todayForecast?.temp_max ?? weather.temperature;
+  const lowTemp = todayForecast?.temp_min ?? (weather.temperature - 4);
 
   return (
-    <div className="card current-weather-card">
-      <div className="current-header">
-        <div className="location-info">
-          <div className="location-name-row">
-            <MapPin size={22} className="text-sky-400" color="#38bdf8" />
-            <h2 className="location-title">
-              {location?.name || 'Selected Location'}
-            </h2>
+    <div className={`widget hero-widget ${gradientClass}`} role="region" aria-label="Current Weather">
+      {/* Background ambient lighting overlay */}
+      <div className="hero-ambient-glow" />
+
+      {/* Hero Content Shell */}
+      <div className="hero-content">
+        {/* Top Meta Row */}
+        <div className="hero-top-row">
+          <div className="hero-location-block">
+            <div className="location-heading-group">
+              <MapPin size={18} strokeWidth={1.5} className="location-pin-glyph" />
+              <h2 className="hero-city-name">{location?.name || 'Selected City'}</h2>
+            </div>
+            <p className="hero-region-sub">
+              {[location?.region, location?.country].filter(Boolean).join(', ') || 'Global Destination'}
+              {weather.timezone && (
+                <span className="hero-timezone-badge"> • {weather.timezone}</span>
+              )}
+            </p>
           </div>
-          <p className="location-details">
-            {location?.region ? `${location.region}, ` : ''}
-            {location?.country ? `${location.country} • ` : ''}
-            <span className="coord-text">
-              {weather.timezone || 'Local Timezone'}
+
+          {onOpenPlanner && (
+            <button
+              type="button"
+              className="plan-trip-pill-btn"
+              onClick={onOpenPlanner}
+              title="Add this destination to Trip Planner"
+            >
+              <Calendar size={15} strokeWidth={1.5} />
+              <span>Plan Trip Here</span>
+            </button>
+          )}
+        </div>
+
+        {/* Centerpiece Hero Temp & Weather Icon */}
+        <div className="hero-centerpiece">
+          <div className="hero-temp-col">
+            <div className="hero-huge-temp tabular-nums">
+              {formatTemp(weather.temperature, unit, true)}
+            </div>
+            <div className="hero-condition-text">{weather.condition}</div>
+          </div>
+
+          <div className="hero-icon-col">
+            {getWeatherIconComponent(weather.icon, 88, 1.5, 'hero-floating-icon')}
+          </div>
+        </div>
+
+        {/* Bottom Details Row */}
+        <div className="hero-bottom-row">
+          <div className="hero-stats-capsules">
+            <span className="hero-stat-pill">
+              Feels like <strong>{formatTemp(weather.apparent_temperature, unit)}</strong>
             </span>
-          </p>
-        </div>
-
-        {onOpenPlanner && (
-          <button
-            type="button"
-            className="btn btn-accent plan-trip-btn"
-            onClick={onOpenPlanner}
-            title="Save trip weather to planner records"
-          >
-            <Calendar size={16} /> Plan Trip Here
-          </button>
-        )}
-      </div>
-
-      <div className="current-body">
-        {/* Main Temperature & Condition */}
-        <div className="temp-hero-section">
-          <div className="hero-icon-container">
-            {getWeatherIconComponent(weather.icon, 72)}
-          </div>
-          <div className="hero-temp-container">
-            <div className="hero-temp">
-              {formatTemp(weather.temperature, unit)}
-            </div>
-            <div className="hero-condition">{weather.condition}</div>
-            <div className="hero-feels-like">
-              Feels like {formatTemp(weather.apparent_temperature, unit)}
-            </div>
-          </div>
-        </div>
-
-        {/* Observation time */}
-        <div className="obs-time-tag">
-          <Clock size={14} />
-          <span>Local Observation: {weather.time ? formatTime(weather.time) : 'Live'}</span>
-        </div>
-
-        {/* Detailed Metrics Grid */}
-        <div className="weather-metrics-grid">
-          {/* Humidity */}
-          <div className="metric-box">
-            <div className="metric-header">
-              <Droplets size={18} color="#38bdf8" />
-              <span className="metric-label">Humidity</span>
-            </div>
-            <div className="metric-value">{weather.relative_humidity}%</div>
+            <span className="hero-stat-pill temp-range-pill">
+              <ArrowUp size={12} strokeWidth={2} color="var(--orange)" />
+              <span className="tabular-nums">{formatTemp(highTemp, unit)}</span>
+              <span className="range-divider">/</span>
+              <ArrowDown size={12} strokeWidth={2} color="var(--sky)" />
+              <span className="tabular-nums">{formatTemp(lowTemp, unit)}</span>
+            </span>
           </div>
 
-          {/* Wind Speed */}
-          <div className="metric-box">
-            <div className="metric-header">
-              <Wind size={18} color="#94a3b8" />
-              <span className="metric-label">Wind Speed</span>
-            </div>
-            <div className="metric-value">{formatWind(weather.wind_speed, unit)}</div>
-          </div>
-
-          {/* UV Index */}
-          <div className="metric-box">
-            <div className="metric-header">
-              <Sun size={18} color="#f59e0b" />
-              <span className="metric-label">UV Index</span>
-            </div>
-            <div className="metric-value uv-value-container">
-              <span>{weather.uv_index.toFixed(1)}</span>
-              <span
-                className="uv-pill"
-                style={{ backgroundColor: `${uvInfo.color}25`, color: uvInfo.color, borderColor: uvInfo.color }}
-              >
-                {uvInfo.label}
-              </span>
-            </div>
-          </div>
-
-          {/* Precipitation */}
-          <div className="metric-box">
-            <div className="metric-header">
-              <CloudRain size={18} color="#60a5fa" />
-              <span className="metric-label">Precipitation</span>
-            </div>
-            <div className="metric-value">{weather.precipitation} mm</div>
-          </div>
-
-          {/* Sunrise */}
-          <div className="metric-box">
-            <div className="metric-header">
-              <Sunrise size={18} color="#f97316" />
-              <span className="metric-label">Sunrise</span>
-            </div>
-            <div className="metric-value">{weather.sunrise ? formatTime(weather.sunrise) : '--:--'}</div>
-          </div>
-
-          {/* Sunset */}
-          <div className="metric-box">
-            <div className="metric-header">
-              <Sunset size={18} color="#ec4899" />
-              <span className="metric-label">Sunset</span>
-            </div>
-            <div className="metric-value">{weather.sunset ? formatTime(weather.sunset) : '--:--'}</div>
+          <div className="hero-observation-pill" title="Time of weather station observation">
+            <Clock size={12} strokeWidth={1.5} />
+            <span className="widget-label">Observed {formatTime(weather.time)}</span>
           </div>
         </div>
       </div>

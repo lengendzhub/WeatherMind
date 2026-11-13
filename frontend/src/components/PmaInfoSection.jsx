@@ -3,40 +3,44 @@ import { Award, User, Sparkles } from 'lucide-react';
 
 export default function PmaInfoSection() {
   return (
-    <footer className="card pma-info-section">
-      <div className="pma-grid">
-        <div className="pma-author-box">
-          <div className="pma-icon-tag">
-            <User size={18} color="#38bdf8" />
-            <span className="pma-tag-title">Candidate Attribution</span>
+    <footer className="widget pma-attribution-widget" role="contentinfo">
+      <div className="pma-bento-split">
+        {/* Candidate Box */}
+        <div className="pma-candidate-card">
+          <div className="widget-header">
+            <User size={14} strokeWidth={1.5} color="var(--blue)" />
+            <span className="widget-label">Candidate Attribution</span>
           </div>
-          <h4 className="candidate-name">[YOUR NAME]</h4>
-          <p className="candidate-role">
-            AI Engineer Intern Assessment • Travel Weather Planner
-          </p>
+          <div className="candidate-name-plate">
+            <h4 className="candidate-full-name">[YOUR NAME]</h4>
+            <p className="candidate-assessment-role">
+              AI Engineer Intern Assessment • Travel Weather Planner
+            </p>
+          </div>
         </div>
 
-        <div className="pma-org-box">
-          <div className="pma-icon-tag">
-            <Award size={18} color="#f59e0b" />
-            <span className="pma-tag-title">Product Manager Accelerator (PM Accelerator)</span>
+        {/* PM Accelerator Info */}
+        <div className="pma-org-card">
+          <div className="widget-header">
+            <Award size={14} strokeWidth={1.5} color="var(--orange)" />
+            <span className="widget-label">Product Manager Accelerator (PM Accelerator)</span>
           </div>
-          <div className="pma-description-container">
+          <div className="pma-description-well">
             {/* OFFICIAL PM ACCELERATOR DESCRIPTION PLACEHOLDER */}
-            <p className="pma-official-placeholder">
+            <p className="pma-description-text">
               [PASTE OFFICIAL PM ACCELERATOR DESCRIPTION HERE]
             </p>
           </div>
         </div>
       </div>
 
-      <div className="pma-footer-bottom">
-        <div className="stack-badge">
-          <Sparkles size={14} color="#38bdf8" />
-          <span>Full-Stack Architecture: React (Vite) + FastAPI + Open-Meteo + SQLite</span>
+      <div className="pma-meta-footer">
+        <div className="pma-stack-pill">
+          <Sparkles size={12} strokeWidth={1.5} color="var(--blue-2)" />
+          <span>React (Vite) + FastAPI + Open-Meteo + SQLite</span>
         </div>
-        <div className="copy-notice">
-          © {new Date().getFullYear()} Travel Weather Planner • All Rights Reserved
+        <div className="pma-copyright-text">
+          Travel Weather Planner • Crafted with Apple HIG Design Principles
         </div>
       </div>
     </footer>

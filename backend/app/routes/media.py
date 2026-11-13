@@ -31,3 +31,4 @@ async def get_travel_videos(
     q: str = Query(..., min_length=2, max_length=100, description="Destination or city name"),
 ):
     return await search_travel_videos(q.strip())
+

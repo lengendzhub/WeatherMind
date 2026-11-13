@@ -86,3 +86,4 @@ def test_current_weather_service_error(mock_get_current, client):
     mock_get_current.side_effect = WeatherServiceError("Upstream timeout")
     response = client.get("/api/weather/current?latitude=51.5074&longitude=-0.1278")
     assert response.status_code == 502
+

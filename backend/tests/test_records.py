@@ -89,3 +89,4 @@ def test_date_range_start_after_end(client):
     response = client.post("/api/records", json=payload)
     assert response.status_code == 422
     assert "cannot be after" in response.json()["detail"]
+

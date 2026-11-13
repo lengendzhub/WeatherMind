@@ -10,7 +10,9 @@ import {
   AlertCircle,
   Loader2,
   Check,
-  ChevronDown,
+  X,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
 import {
   listRecords,
@@ -24,54 +26,37 @@ import { formatTemp } from '../utils/formatters';
 export default function TripPlannerSection({ activeLocation, unit }) {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [successMsg, setSuccessMsg] = useState(null);
+  const [toastMsg, setToastMsg] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
 
-  // Form State
-  const [locationName, setLocationName] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [notes, setNotes] = useState('');
+  // Modal / Sheet State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [formLocation, setFormLocation] = useState('');
+  const [formStart, setFormStart] = useState('');
+  const [formEnd, setFormEnd] = useState('');
+  const [formNotes, setFormNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // Edit Modal State
-  const [editingRecord, setEditingRecord] = useState(null);
-  const [editStartDate, setEditStartDate] = useState('');
-  const [editEndDate, setEditEndDate] = useState('');
-  const [editNotes, setEditNotes] = useState('');
-  const [editSubmitting, setEditSubmitting] = useState(false);
+  // Delete Confirmation State
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
-  // Export dropdown states
-  const [exportAllOpen, setExportAllOpen] = useState(false);
-  const [activeExportId, setActiveExportId] = useState(null);
-
-  // Sync active location from search
+  // Toast timer
   useEffect(() => {
-    if (activeLocation?.name) {
-      setLocationName(activeLocation.name);
-    }
-  }, [activeLocation]);
+    if (!toastMsg) return;
+    const t = setTimeout(() => setToastMsg(null), 3500);
+    return () => clearTimeout(t);
+  }, [toastMsg]);
 
-  // Set default dates: tomorrow to +4 days
-  useEffect(() => {
-    const today = new Date();
-    const start = new Date(today);
-    start.setDate(today.getDate() + 1);
-    const end = new Date(today);
-    end.setDate(today.getDate() + 5);
-
-    setStartDate(start.toISOString().split('T')[0]);
-    setEndDate(end.toISOString().split('T')[0]);
-  }, []);
-
+  // Load records
   const loadRecords = async () => {
     setLoading(true);
-    setError(null);
     try {
       const data = await listRecords();
       setRecords(data);
     } catch (err) {
-      setError(err.message || 'Failed to fetch saved trip records.');
+      setErrorMsg(err.message || 'Failed to fetch saved trips.');
     } finally {
       setLoading(false);
     }
@@ -81,430 +66,397 @@ export default function TripPlannerSection({ activeLocation, unit }) {
     loadRecords();
   }, []);
 
-  const handleCreateRecord = async (e) => {
+  // Default dates: tomorrow to +4 days
+  const initDefaultDates = () => {
+    const today = new Date();
+    const start = new Date(today);
+    start.setDate(today.getDate() + 1);
+    const end = new Date(today);
+    end.setDate(today.getDate() + 5);
+
+    setFormStart(start.toISOString().split('T')[0]);
+    setFormEnd(end.toISOString().split('T')[0]);
+  };
+
+  const handleOpenNewTrip = () => {
+    setEditingRecord(null);
+    setFormLocation(activeLocation?.name || '');
+    initDefaultDates();
+    setFormNotes('');
+    setErrorMsg(null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEdit = (record) => {
+    setEditingRecord(record);
+    setFormLocation(record.location_name);
+    setFormStart(record.start_date);
+    setFormEnd(record.end_date);
+    setFormNotes(record.notes || '');
+    setErrorMsg(null);
+    setIsModalOpen(true);
+  };
+
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
-    setSuccessMsg(null);
+    setErrorMsg(null);
 
-    if (!locationName.trim()) {
-      setError('Please provide a destination name.');
-      return;
-    }
-    if (!startDate || !endDate) {
-      setError('Please provide both start and end dates.');
-      return;
-    }
-
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    const start = new Date(formStart);
+    const end = new Date(formEnd);
     const diffDays = Math.round((end - start) / (1000 * 60 * 60 * 24));
 
     if (diffDays < 0) {
-      setError('Start date cannot be after end date.');
+      setErrorMsg('Start date cannot be after end date.');
       return;
     }
     if (diffDays > 31) {
-      setError(`Date range (${diffDays} days) exceeds maximum limit of 31 days.`);
+      setErrorMsg(`Trip duration (${diffDays} days) exceeds 31-day limit.`);
       return;
     }
 
     setSubmitting(true);
     try {
-      const payload = {
-        location_name: locationName.trim(),
-        country: activeLocation?.country || null,
-        latitude: activeLocation?.latitude || null,
-        longitude: activeLocation?.longitude || null,
-        start_date: startDate,
-        end_date: endDate,
-        notes: notes.trim() || null,
-      };
-
-      await createRecord(payload);
-      setSuccessMsg(`Trip to "${locationName}" saved successfully!`);
-      setNotes('');
+      if (editingRecord) {
+        await updateRecord(editingRecord.id, {
+          start_date: formStart,
+          end_date: formEnd,
+          notes: formNotes.trim() || null,
+        });
+        setToastMsg(`Trip to "${editingRecord.location_name}" updated!`);
+      } else {
+        await createRecord({
+          location_name: formLocation.trim(),
+          country: activeLocation?.country || null,
+          latitude: activeLocation?.latitude || null,
+          longitude: activeLocation?.longitude || null,
+          start_date: formStart,
+          end_date: formEnd,
+          notes: formNotes.trim() || null,
+        });
+        setToastMsg(`Trip to "${formLocation}" saved to database!`);
+      }
+      setIsModalOpen(false);
       await loadRecords();
     } catch (err) {
-      setError(err.message || 'Failed to save trip weather record.');
+      setErrorMsg(err.message || 'Operation failed.');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDeleteRecord = async (id, name) => {
-    if (!window.confirm(`Are you sure you want to delete the trip record for "${name}"?`)) {
-      return;
-    }
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await deleteRecord(id);
-      setSuccessMsg(`Trip record for "${name}" deleted.`);
+      await deleteRecord(deleteTarget.id);
+      setToastMsg(`Trip to "${deleteTarget.location_name}" deleted.`);
+      setDeleteTarget(null);
       await loadRecords();
     } catch (err) {
-      setError(err.message || 'Failed to delete record.');
-    }
-  };
-
-  const handleStartEdit = (record) => {
-    setEditingRecord(record);
-    setEditStartDate(record.start_date);
-    setEditEndDate(record.end_date);
-    setEditNotes(record.notes || '');
-  };
-
-  const handleUpdateRecord = async (e) => {
-    e.preventDefault();
-    if (!editingRecord) return;
-
-    const start = new Date(editStartDate);
-    const end = new Date(editEndDate);
-    const diffDays = Math.round((end - start) / (1000 * 60 * 60 * 24));
-
-    if (diffDays < 0) {
-      setError('Start date cannot be after end date.');
-      return;
-    }
-    if (diffDays > 31) {
-      setError(`Date range (${diffDays} days) exceeds maximum limit of 31 days.`);
-      return;
-    }
-
-    setEditSubmitting(true);
-    try {
-      await updateRecord(editingRecord.id, {
-        start_date: editStartDate,
-        end_date: editEndDate,
-        notes: editNotes.trim() || null,
-      });
-      setSuccessMsg(`Trip record #${editingRecord.id} updated!`);
-      setEditingRecord(null);
-      await loadRecords();
-    } catch (err) {
-      setError(err.message || 'Failed to update record.');
+      setErrorMsg(err.message || 'Failed to delete record.');
     } finally {
-      setEditSubmitting(false);
+      setDeleting(false);
     }
+  };
+
+  const triggerExport = (recordId, format) => {
+    const url = getExportUrl(recordId, format);
+    window.location.href = url;
+    setToastMsg(`Exporting as ${format.toUpperCase()}...`);
   };
 
   return (
-    <div className="card planner-section">
-      <div className="planner-header">
-        <div className="section-title-row">
-          <Compass size={22} color="#38bdf8" />
-          <h3 className="section-title">Travel Weather Planner (CRUD & History)</h3>
+    <section className="widget planner-widget" role="region" aria-label="Trip Planner">
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="glass-toast" role="status">
+          <Check size={14} color="var(--green)" />
+          <span>{toastMsg}</span>
+        </div>
+      )}
+
+      {/* Header Row */}
+      <div className="planner-top-bar">
+        <div className="planner-title-group">
+          <Compass size={16} strokeWidth={1.5} color="var(--blue)" />
+          <h3 className="planner-heading">My Trips</h3>
+          <span className="planner-count-badge tabular-nums">{records.length}</span>
         </div>
 
-        {/* Global Export Button */}
-        <div className="export-all-wrapper">
+        <div className="planner-top-actions">
+          {/* Export Segmented Control */}
+          <div className="glass-capsule export-segmented-control" title="Export All Records">
+            <span className="widget-label export-label">Export:</span>
+            {['json', 'csv', 'xml', 'markdown'].map((fmt) => (
+              <button
+                key={fmt}
+                type="button"
+                className="export-segment-btn"
+                onClick={() => triggerExport(null, fmt)}
+                disabled={records.length === 0}
+              >
+                {fmt === 'markdown' ? 'MD' : fmt.toUpperCase()}
+              </button>
+            ))}
+          </div>
+
+          {/* New Trip Pill */}
           <button
             type="button"
-            className="btn btn-secondary export-btn"
-            onClick={() => setExportAllOpen(!exportAllOpen)}
-            disabled={records.length === 0}
+            className="action-pill-btn new-trip-btn"
+            onClick={handleOpenNewTrip}
           >
-            <Download size={16} /> Export All ({records.length}) <ChevronDown size={14} />
+            <Plus size={15} strokeWidth={1.75} />
+            <span>New Trip</span>
           </button>
-          {exportAllOpen && (
-            <div className="export-dropdown-menu">
-              <a
-                href={getExportUrl(null, 'json')}
-                download="all_weather_records.json"
-                className="export-opt"
-                onClick={() => setExportAllOpen(false)}
-              >
-                JSON Format
-              </a>
-              <a
-                href={getExportUrl(null, 'csv')}
-                download="all_weather_records.csv"
-                className="export-opt"
-                onClick={() => setExportAllOpen(false)}
-              >
-                CSV Spreadsheet
-              </a>
-              <a
-                href={getExportUrl(null, 'xml')}
-                download="all_weather_records.xml"
-                className="export-opt"
-                onClick={() => setExportAllOpen(false)}
-              >
-                XML Document
-              </a>
-              <a
-                href={getExportUrl(null, 'markdown')}
-                download="all_weather_records.md"
-                className="export-opt"
-                onClick={() => setExportAllOpen(false)}
-              >
-                Markdown (.md)
-              </a>
-            </div>
-          )}
         </div>
       </div>
 
-      <p className="planner-desc">
-        Save custom trip itineraries (up to 31 days) to fetch and store daily historical or forecasted weather in SQLite. Update trip dates or notes anytime, and export reports in JSON, CSV, XML, and Markdown.
-      </p>
-
-      {/* Notifications inside planner */}
-      {error && (
-        <div className="planner-alert planner-error">
-          <AlertCircle size={16} /> <span>{error}</span>
+      {/* Trips Content */}
+      {loading ? (
+        <div className="trips-grid-layout">
+          {[1, 2].map((i) => (
+            <div key={i} className="trip-card-shimmer skeleton" />
+          ))}
         </div>
-      )}
-      {successMsg && (
-        <div className="planner-alert planner-success">
-          <Check size={16} /> <span>{successMsg}</span>
+      ) : records.length === 0 ? (
+        <div className="trips-empty-box">
+          <div className="empty-symbol-disc">
+            <Calendar size={22} strokeWidth={1.5} color="var(--blue)" />
+          </div>
+          <p className="empty-headline">No Travel Records Yet</p>
+          <p className="empty-subtext">
+            Plan your next journey with weather forecasts for up to 31 days.
+          </p>
         </div>
-      )}
+      ) : (
+        <div className="trips-grid-layout">
+          {records.map((r) => {
+            const daily = r.daily_data || [];
+            const maxTemps = daily.map((d) => d.temp_max).filter((t) => typeof t === 'number');
+            const minTemps = daily.map((d) => d.temp_min).filter((t) => typeof t === 'number');
+            const highVal = maxTemps.length ? Math.max(...maxTemps) : null;
+            const lowVal = minTemps.length ? Math.min(...minTemps) : null;
 
-      {/* Create Trip Form */}
-      <form onSubmit={handleCreateRecord} className="planner-form">
-        <div className="form-grid">
-          <div className="form-field">
-            <label>Destination Location</label>
-            <input
-              type="text"
-              value={locationName}
-              onChange={(e) => setLocationName(e.target.value)}
-              placeholder="e.g. Rome, Honolulu, or Eiffel Tower"
-              required
-            />
-          </div>
-
-          <div className="form-field">
-            <label>Start Date</label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="form-field">
-            <label>End Date (Max 31 Days)</label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              required
-            />
-          </div>
-        </div>
-
-        <div className="form-field full-width">
-          <label>Packing & Travel Notes</label>
-          <input
-            type="text"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="e.g. Beach resort trip, remember sunscreen and hiking shoes..."
-          />
-        </div>
-
-        <div className="form-actions">
-          <button type="submit" className="btn btn-primary" disabled={submitting}>
-            {submitting ? (
-              <>
-                <Loader2 size={16} className="spin" /> Fetching Weather & Saving...
-              </>
-            ) : (
-              <>
-                <Plus size={16} /> Save Trip Weather Record
-              </>
-            )}
-          </button>
-        </div>
-      </form>
-
-      {/* Saved Records List */}
-      <div className="saved-records-container">
-        <h4 className="records-subtitle">Saved Trip Records ({records.length})</h4>
-
-        {loading ? (
-          <div className="records-loading">
-            <Loader2 size={24} className="spin" /> Loading saved records...
-          </div>
-        ) : records.length === 0 ? (
-          <div className="records-empty">
-            <Calendar size={32} color="#94a3b8" />
-            <p>No saved trips yet. Pick a destination and date range above to save your first travel plan.</p>
-          </div>
-        ) : (
-          <div className="records-list">
-            {records.map((r) => {
-              const daily = r.daily_data || [];
-              const maxTemps = daily.map((d) => d.temp_max).filter((t) => t !== undefined);
-              const minTemps = daily.map((d) => d.temp_min).filter((t) => t !== undefined);
-              const highOverall = maxTemps.length ? Math.max(...maxTemps) : null;
-              const lowOverall = minTemps.length ? Math.min(...minTemps) : null;
-
-              return (
-                <div key={r.id} className="record-item-card">
-                  <div className="record-top-row">
-                    <div>
-                      <span className="record-badge">Trip #{r.id}</span>
-                      <h4 className="record-destination">
-                        {r.location_name} {r.country ? `(${r.country})` : ''}
-                      </h4>
-                      <p className="record-dates">
-                        <Calendar size={14} /> {r.start_date} → {r.end_date} ({daily.length} days)
-                      </p>
-                    </div>
-
-                    <div className="record-actions">
-                      {/* Export Dropdown */}
-                      <div className="export-single-wrapper">
-                        <button
-                          type="button"
-                          className="btn-icon"
-                          title="Export this record"
-                          onClick={() => setActiveExportId(activeExportId === r.id ? null : r.id)}
-                        >
-                          <Download size={16} />
-                        </button>
-                        {activeExportId === r.id && (
-                          <div className="export-dropdown-menu single-dropdown">
-                            <a
-                              href={getExportUrl(r.id, 'json')}
-                              download={`record_${r.id}.json`}
-                              className="export-opt"
-                              onClick={() => setActiveExportId(null)}
-                            >
-                              JSON
-                            </a>
-                            <a
-                              href={getExportUrl(r.id, 'csv')}
-                              download={`record_${r.id}.csv`}
-                              className="export-opt"
-                              onClick={() => setActiveExportId(null)}
-                            >
-                              CSV
-                            </a>
-                            <a
-                              href={getExportUrl(r.id, 'xml')}
-                              download={`record_${r.id}.xml`}
-                              className="export-opt"
-                              onClick={() => setActiveExportId(null)}
-                            >
-                              XML
-                            </a>
-                            <a
-                              href={getExportUrl(r.id, 'markdown')}
-                              download={`record_${r.id}.md`}
-                              className="export-opt"
-                              onClick={() => setActiveExportId(null)}
-                            >
-                              Markdown
-                            </a>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Edit */}
-                      <button
-                        type="button"
-                        className="btn-icon"
-                        title="Edit Dates / Notes"
-                        onClick={() => handleStartEdit(r)}
-                      >
-                        <Edit3 size={16} />
-                      </button>
-
-                      {/* Delete */}
-                      <button
-                        type="button"
-                        className="btn-icon btn-icon-danger"
-                        title="Delete Trip"
-                        onClick={() => handleDeleteRecord(r.id, r.location_name)}
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Temperature overview */}
-                  <div className="record-weather-summary">
-                    <span className="summary-pill">
-                      Range High: <strong>{formatTemp(highOverall, unit)}</strong>
-                    </span>
-                    <span className="summary-pill">
-                      Range Low: <strong>{formatTemp(lowOverall, unit)}</strong>
-                    </span>
-                    <span className="summary-pill coords-pill">
-                      {r.latitude.toFixed(2)}°, {r.longitude.toFixed(2)}°
+            return (
+              <div key={r.id} className="trip-glass-card">
+                <div className="trip-card-header">
+                  <div>
+                    <h4 className="trip-dest-name">{r.location_name}</h4>
+                    <span className="trip-date-range">
+                      {r.start_date} → {r.end_date}
                     </span>
                   </div>
 
-                  {/* Notes */}
-                  {r.notes && (
-                    <div className="record-notes">
-                      <FileText size={14} /> <span>{r.notes}</span>
-                    </div>
-                  )}
+                  <div className="trip-card-actions">
+                    <button
+                      type="button"
+                      className="trip-icon-btn"
+                      onClick={() => handleOpenEdit(r)}
+                      title="Edit trip dates or notes"
+                      aria-label="Edit trip"
+                    >
+                      <Edit3 size={14} strokeWidth={1.5} />
+                    </button>
+                    <button
+                      type="button"
+                      className="trip-icon-btn btn-danger-icon"
+                      onClick={() => setDeleteTarget(r)}
+                      title="Delete trip record"
+                      aria-label="Delete trip"
+                    >
+                      <Trash2 size={14} strokeWidth={1.5} />
+                    </button>
+                  </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
 
-      {/* Edit Record Modal */}
-      {editingRecord && (
-        <div className="modal-overlay" onClick={() => setEditingRecord(null)}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <h4 className="modal-title">Edit Trip #{editingRecord.id}: {editingRecord.location_name}</h4>
-            <p className="modal-sub">
-              Changing dates will re-validate and re-fetch daily weather from Open-Meteo.
-            </p>
+                {/* Weather Summary Chips */}
+                <div className="trip-metrics-row">
+                  <div className="trip-stat-chip">
+                    <ArrowUp size={11} strokeWidth={2} color="var(--orange)" />
+                    <span className="tabular-nums">{formatTemp(highVal, unit)}</span>
+                  </div>
+                  <div className="trip-stat-chip">
+                    <ArrowDown size={11} strokeWidth={2} color="var(--sky)" />
+                    <span className="tabular-nums">{formatTemp(lowVal, unit)}</span>
+                  </div>
+                  <div className="trip-stat-chip days-chip">
+                    <span>{daily.length} days</span>
+                  </div>
+                </div>
 
-            <form onSubmit={handleUpdateRecord} className="modal-form">
-              <div className="form-field">
-                <label>Start Date</label>
-                <input
-                  type="date"
-                  value={editStartDate}
-                  onChange={(e) => setEditStartDate(e.target.value)}
-                  required
+                {/* Notes preview */}
+                {r.notes && (
+                  <p className="trip-notes-preview">
+                    <FileText size={12} strokeWidth={1.5} />
+                    <span>{r.notes}</span>
+                  </p>
+                )}
+
+                {/* Single Trip Export Links */}
+                <div className="trip-export-footer">
+                  <span className="widget-label">Download:</span>
+                  <div className="trip-export-links">
+                    {['json', 'csv', 'xml', 'markdown'].map((fmt) => (
+                      <button
+                        key={fmt}
+                        type="button"
+                        className="trip-export-link-btn"
+                        onClick={() => triggerExport(r.id, fmt)}
+                      >
+                        {fmt === 'markdown' ? 'MD' : fmt.toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Create / Edit Bottom Sheet Modal */}
+      {isModalOpen && (
+        <div className="glass-modal-scrim" onClick={() => setIsModalOpen(false)}>
+          <div className="glass-modal-sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+            <div className="modal-drag-pill" />
+
+            <div className="modal-top-bar">
+              <h4 className="modal-title">
+                {editingRecord ? `Edit Trip: ${editingRecord.location_name}` : 'Plan a New Trip'}
+              </h4>
+              <button
+                type="button"
+                className="modal-close-btn"
+                onClick={() => setIsModalOpen(false)}
+                aria-label="Close"
+              >
+                <X size={16} strokeWidth={1.5} />
+              </button>
+            </div>
+
+            {errorMsg && (
+              <div className="modal-error-pill">
+                <AlertCircle size={14} color="var(--red-alert)" />
+                <span>{errorMsg}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleFormSubmit} className="modal-form-body">
+              {!editingRecord && (
+                <div className="modal-field">
+                  <label className="widget-label">Destination</label>
+                  <input
+                    type="text"
+                    className="modal-input"
+                    value={formLocation}
+                    onChange={(e) => setFormLocation(e.target.value)}
+                    placeholder="e.g. Rome, Tokyo, or Eiffel Tower"
+                    required
+                  />
+                </div>
+              )}
+
+              <div className="modal-date-grid">
+                <div className="modal-field">
+                  <label className="widget-label">Start Date</label>
+                  <input
+                    type="date"
+                    className="modal-input"
+                    value={formStart}
+                    onChange={(e) => setFormStart(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="modal-field">
+                  <label className="widget-label">End Date (Max 31 Days)</label>
+                  <input
+                    type="date"
+                    className="modal-input"
+                    value={formEnd}
+                    onChange={(e) => setFormEnd(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="modal-field">
+                <label className="widget-label">Packing & Travel Notes</label>
+                <textarea
+                  className="modal-input modal-textarea"
+                  rows="3"
+                  value={formNotes}
+                  onChange={(e) => setFormNotes(e.target.value)}
+                  placeholder="e.g. Hiking shoes, light jacket, camera gear..."
                 />
               </div>
 
-              <div className="form-field">
-                <label>End Date (Max 31 Days)</label>
-                <input
-                  type="date"
-                  value={editEndDate}
-                  onChange={(e) => setEditEndDate(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="form-field">
-                <label>Notes</label>
-                <input
-                  type="text"
-                  value={editNotes}
-                  onChange={(e) => setEditNotes(e.target.value)}
-                />
-              </div>
-
-              <div className="modal-actions">
+              <div className="modal-actions-row">
                 <button
                   type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setEditingRecord(null)}
+                  className="action-pill-btn secondary-pill"
+                  onClick={() => setIsModalOpen(false)}
                 >
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary" disabled={editSubmitting}>
-                  {editSubmitting ? <Loader2 size={16} className="spin" /> : 'Update & Re-fetch'}
+                <button
+                  type="submit"
+                  className="action-pill-btn primary-pill"
+                  disabled={submitting}
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 size={15} strokeWidth={1.5} className="spin" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <span>{editingRecord ? 'Update Trip' : 'Save Trip'}</span>
+                  )}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
-    </div>
+
+      {/* Delete Confirmation Sheet */}
+      {deleteTarget && (
+        <div className="glass-modal-scrim" onClick={() => setDeleteTarget(null)}>
+          <div className="glass-modal-sheet delete-sheet" onClick={(e) => e.stopPropagation()} role="alertdialog">
+            <div className="modal-drag-pill" />
+            <h4 className="modal-title">Delete Trip Record?</h4>
+            <p className="delete-prompt-copy">
+              Are you sure you want to delete your trip to <strong>{deleteTarget.location_name}</strong>? This action cannot be undone.
+            </p>
+
+            <div className="modal-actions-row">
+              <button
+                type="button"
+                className="action-pill-btn secondary-pill"
+                onClick={() => setDeleteTarget(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="action-pill-btn delete-destructive-pill"
+                onClick={handleConfirmDelete}
+                disabled={deleting}
+              >
+                {deleting ? (
+                  <>
+                    <Loader2 size={15} strokeWidth={1.5} className="spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <span>Delete Trip</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
   );
 }

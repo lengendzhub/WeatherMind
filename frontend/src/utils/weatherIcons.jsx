@@ -11,42 +11,40 @@ import {
   CloudSnow,
   CloudLightning,
   CloudHail,
-  Wind,
 } from 'lucide-react';
 
-export function getWeatherIconComponent(iconName, size = 28, className = '') {
+export function getWeatherIconComponent(iconName, size = 32, strokeWidth = 1.5, className = '') {
   switch (iconName) {
     case 'clear-day':
-      return <Sun size={size} className={`text-amber-500 ${className}`} color="#f59e0b" />;
+      return <Sun size={size} strokeWidth={strokeWidth} color="var(--yellow)" className={`weather-icon ${className}`} />;
     case 'clear-night':
-      return <Moon size={size} className={`text-indigo-400 ${className}`} color="#818cf8" />;
+      return <Moon size={size} strokeWidth={strokeWidth} color="var(--indigo)" className={`weather-icon ${className}`} />;
     case 'partly-cloudy-day':
-      return <CloudSun size={size} className={`text-amber-400 ${className}`} color="#fbbf24" />;
+      return <CloudSun size={size} strokeWidth={strokeWidth} color="var(--orange)" className={`weather-icon ${className}`} />;
     case 'partly-cloudy-night':
-      return <CloudMoon size={size} className={`text-indigo-300 ${className}`} color="#a5b4fc" />;
+      return <CloudMoon size={size} strokeWidth={strokeWidth} color="var(--indigo)" className={`weather-icon ${className}`} />;
     case 'cloudy':
-      return <Cloud size={size} className={`text-slate-400 ${className}`} color="#94a3b8" />;
+      return <Cloud size={size} strokeWidth={strokeWidth} color="var(--gray-2)" className={`weather-icon ${className}`} />;
     case 'fog':
-      return <CloudFog size={size} className={`text-slate-300 ${className}`} color="#cbd5e1" />;
+      return <CloudFog size={size} strokeWidth={strokeWidth} color="var(--gray-1)" className={`weather-icon ${className}`} />;
     case 'drizzle':
-      return <CloudDrizzle size={size} className={`text-sky-400 ${className}`} color="#38bdf8" />;
+      return <CloudDrizzle size={size} strokeWidth={strokeWidth} color="var(--sky)" className={`weather-icon ${className}`} />;
     case 'rain':
     case 'rain-shower':
-      return <CloudRain size={size} className={`text-blue-500 ${className}`} color="#3b82f6" />;
+      return <CloudRain size={size} strokeWidth={strokeWidth} color="var(--blue-2)" className={`weather-icon ${className}`} />;
     case 'heavy-rain':
     case 'thunderstorm-rain':
-      return <CloudRain size={size} className={`text-blue-700 ${className}`} color="#1d4ed8" />;
+      return <CloudRain size={size} strokeWidth={strokeWidth} color="var(--blue)" className={`weather-icon ${className}`} />;
     case 'sleet':
-      return <CloudHail size={size} className={`text-cyan-400 ${className}`} color="#22d3ee" />;
+      return <CloudHail size={size} strokeWidth={strokeWidth} color="var(--sky)" className={`weather-icon ${className}`} />;
     case 'snow':
     case 'snow-shower':
-      return <CloudSnow size={size} className={`text-sky-200 ${className}`} color="#bae6fd" />;
     case 'heavy-snow':
-      return <CloudSnow size={size} className={`text-indigo-100 ${className}`} color="#e0e7ff" />;
+      return <CloudSnow size={size} strokeWidth={strokeWidth} color="var(--sky)" className={`weather-icon ${className}`} />;
     case 'thunderstorm':
     case 'thunderstorm-hail':
-      return <CloudLightning size={size} className={`text-amber-400 ${className}`} color="#fbbf24" />;
+      return <CloudLightning size={size} strokeWidth={strokeWidth} color="var(--yellow)" className={`weather-icon ${className}`} />;
     default:
-      return <Cloud size={size} className={`text-slate-400 ${className}`} color="#94a3b8" />;
+      return <Cloud size={size} strokeWidth={strokeWidth} color="var(--gray-2)" className={`weather-icon ${className}`} />;
   }
 }

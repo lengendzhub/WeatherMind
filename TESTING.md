@@ -80,3 +80,4 @@ Follow this checklist during evaluation to test all user journeys:
 ## 3. Mock Strategy & Reliability
 - **Isolated In-Memory Database**: Tests in `conftest.py` use SQLite `:memory:` with automatic transaction rollback to prevent test flakiness or state contamination.
 - **External API Mocking**: All outbound `httpx` network calls in unit tests are mocked using `unittest.mock.patch`, ensuring tests run instantly and deterministically without network dependencies or rate limits.
+
