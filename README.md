@@ -15,6 +15,14 @@
 
 ---
 
+## 🚀 Live Production Deployments
+- 🌐 **Live Web Application**: [https://weather-mind.onrender.com/](https://weather-mind.onrender.com/)
+- ⚙️ **Backend REST API**: [https://weathermind-u12d.onrender.com](https://weathermind-u12d.onrender.com)
+- 📖 **Interactive Swagger UI**: [https://weathermind-u12d.onrender.com/docs](https://weathermind-u12d.onrender.com/docs)
+- 💚 **Backend Health Status**: [https://weathermind-u12d.onrender.com/health](https://weathermind-u12d.onrender.com/health)
+
+---
+
 ## 🌟 Executive Summary
 
 **WeatherMind (Travel Weather Planner)** is an Apple HIG & visionOS-inspired, widget-based weather forecast and trip intelligence web application. Designed for discerning travelers, the application unifies real-time meteorology from **Open-Meteo**, interactive mapping from **OpenStreetMap**, curated travel guides from the **YouTube Data API v3**, and robust travel itinerary persistence (CRUD + 4-format export) powered by a **FastAPI + SQLite** backend.
