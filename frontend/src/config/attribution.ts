@@ -13,12 +13,10 @@ export interface AttributionConfig {
 }
 
 export const attributionConfig: AttributionConfig = {
-  // If empty or placeholder '[YOUR NAME]', UI will display a subtle dashed 'Add your name' state
-  candidateName: "",
+  candidateName: "Marimuthu",
   candidateRole: "AI Engineer Intern Assessment · Travel Weather Planner",
   orgName: "Product Manager Accelerator",
-  orgSubtitle: "PM Accelerator",
-  // If empty or placeholder, UI will display a subtle dashed 'Add description' state
+  orgSubtitle: "Product Manager Accelerator",
   orgDescription: "",
   techStack: [
     { name: "React · Vite", color: "var(--sky)" },

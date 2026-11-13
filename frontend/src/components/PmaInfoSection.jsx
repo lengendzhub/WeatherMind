@@ -43,19 +43,19 @@ export default function PmaInfoSection() {
         <div className="about-column org-column">
           <div className="widget-header">
             <Award size={15} strokeWidth={1.5} color="var(--orange)" />
-            <span className="widget-label">{attributionConfig.orgName}</span>
+            <span className="widget-label">{attributionConfig.orgSubtitle || 'Organization'}</span>
           </div>
 
-          <div className="org-inset-panel">
-            {hasDesc ? (
+          {hasDesc ? (
+            <div className="org-inset-panel">
               <p className="org-description-body">{attributionConfig.orgDescription}</p>
-            ) : (
-              <div className="dashed-placeholder-box" title="Configure official description in src/config/attribution.ts">
-                <Edit2 size={13} strokeWidth={1.5} />
-                <span>Add PM Accelerator description</span>
-              </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="candidate-body">
+              <h4 className="candidate-heading">{attributionConfig.orgName}</h4>
+              <p className="candidate-sub-role">AI &amp; Product Leadership Assessment</p>
+            </div>
+          )}
         </div>
       </div>
 
