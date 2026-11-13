@@ -4,8 +4,8 @@
    ========================================================================== */
 
 :root {
-  /* Brand / System Accents */
-  --blue: #007AFF;
+  /* Brand / System Accents (Dark Mode Default: Apple Dark Mode System Blue #0A84FF) */
+  --blue: #0A84FF;
   --blue-2: #34AADC;
   --sky: #5AC8FA;
   --indigo: #5856D6;
@@ -71,6 +71,7 @@
 
 /* Light Mode Overrides */
 [data-theme="light"] {
+  --blue: #007AFF; /* Apple Light Mode System Blue */
   --bg-app: var(--snow);
   --bg-gradient: radial-gradient(circle at 50% 0%, rgba(214, 206, 195, 0.45) 0%, #f7f7f7 65%, #ecebe8 100%);
   --text-primary: var(--ink);
@@ -95,6 +96,7 @@
 
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
+    --blue: #007AFF;
     --bg-app: var(--snow);
     --bg-gradient: radial-gradient(circle at 50% 0%, rgba(214, 206, 195, 0.45) 0%, #f7f7f7 65%, #ecebe8 100%);
     --text-primary: var(--ink);
