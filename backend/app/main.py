@@ -36,6 +36,17 @@ app.include_router(records.router)
 app.include_router(media.router)
 
 
+@app.get("/", tags=["system"])
+def root():
+    return {
+        "name": "WeatherMind API",
+        "status": "online",
+        "docs": "/docs",
+        "health": "/api/health",
+    }
+
+
+@app.get("/health", tags=["system"])
 @app.get("/api/health", tags=["system"])
 def health():
     return {"status": "ok"}
