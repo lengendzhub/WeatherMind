@@ -1,6 +1,8 @@
-// If VITE_API_BASE_URL is set (e.g. on Vercel or Render production), use it; otherwise fallback to '/api' local proxy
-const RAW_BASE = import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '') : '';
-const API_BASE = `${RAW_BASE}/api`;
+// Safely normalize API_BASE: handles trailing slashes, empty local fallbacks, and ensures no duplicate /api
+const rawEnvUrl = (import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/+$/, '');
+const API_BASE = rawEnvUrl
+  ? (rawEnvUrl.endsWith('/api') ? rawEnvUrl : `${rawEnvUrl}/api`)
+  : '/api';
 
 export async function searchLocations(query) {
   const resp = await fetch(`${API_BASE}/locations/search?q=${encodeURIComponent(query)}`);
